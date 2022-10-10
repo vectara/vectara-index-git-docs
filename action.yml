@@ -1,0 +1,113 @@
+name: 'Vectara Documentation Indexer'
+branding:
+  icon: 'search'
+  color: 'purple'
+description: 'Send markdown files to Vectara for indexing'
+inputs:
+  vectaraAccountNumber:
+    description: 'Vectara Account Number'
+    required: true
+  vectaraCorpusID:
+    description: 'Vectara Corpus ID'
+    required: true
+  vectaraClientID:
+    description: 'Vectara OAuth 2.0 Client ID'
+    required: true
+  vectaraClientSecret:
+    description: 'Vectara OAuth 2.0 Client Secret'
+    required: true
+  vectaraIndexingEndpoint:
+    description: 'Vectara Indexing Endpoint'
+    default: 'indexing.vectara.io'
+    required: false
+  vectaraAuthEndpoint:
+    description: 'Vectara Authentication Endpoint'
+    default: ''
+    required: false
+  coldStart:
+    description: 'Whether to index all documents that match and not just changed files'
+    default: 'false'
+    required: false
+  filesPattern:
+    description: 'Vectara Authentication Endpoint'
+    default: '**'
+    required: false
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Get JWT token
+      id: jwt-token
+      shell: bash
+      run: |
+        bash $GITHUB_ACTION_PATH/get_jwt_token.sh
+      env:
+        INPUT_VECTARA_AUTH_ENDPOINT: ${{ inputs.vectaraAuthEndpoint }}
+        INPUT_VECTARA_ACCOUNT_NUMBER: ${{ inputs.vectaraAccountNumber }}
+        INPUT_VECTARA_CLIENT_ID: ${{ inputs.vectaraClientID }}
+        INPUT_VECTARA_CLIENT_SECRET: ${{ inputs.vectaraClientSecret }}
+        
+    - name: Get changed files
+      id: changed-files
+      uses: tj-actions/changed-files@v32
+      if: inputs.coldStart != 'true'
+      with:
+          files: |
+            ${{ inputs.filesPattern }}
+
+    - name: Get all files
+      id: all-files
+      uses: tj-actions/changed-files@v32
+      if: inputs.coldStart == 'true'
+      with:
+          since: '1900-01-01'
+          files: |
+            ${{ inputs.filesPattern }}
+
+    - name: Delete any documentation that has changed
+      shell: bash
+      id: delete-docs
+      run: |
+        for file in ${{ steps.changed-files.outputs.deleted_files }}; do
+          PAYLOAD={"customer-id":"${{ inputs.vectaraAccountNumber }}","corpus-id":"${{ inputs.vectaraCorpusID }}","document-id":"$file"}
+          echo "::debug::Payload: $PAYLOAD"
+          curl -XPOST "https://h.indexing.vectara.io/v1/delete" -d $PAYLOAD \
+           -H "Content-type: application/json" \
+           -H "Authorization: Bearer $JWT_TOKEN" \
+           -H "customer-id: ${{ inputs.vectaraAccountNumber }}"
+        done
+    
+    - name: Index any documentation that has been created
+      shell: bash
+      id: index-docs
+      run: |
+        for file in ${{ steps.changed-files.outputs.added_files }}; do
+          FULL_FILE_PATH=$GITHUB_WORKSPACE/$file
+          echo "::debug::Full file path: $FULL_FILE_PATH"
+          echo "::debug::File stats: $(ls -al $FULL_FILE_PATH)"
+          curl -XPOST "https://h.indexing.vectara.io/upload?o=${{ inputs.vectaraCorpusID }}&c=${{ inputs.vectaraAccountNumber }}" \
+           -H "Authorization: Bearer $JWT_TOKEN" -F file=@$FULL_FILE_PATH
+        done
+
+    - name: Index any documentation that has been modified
+      shell: bash
+      id: update-docs
+      run: |
+        for file in ${{ steps.changed-files.outputs.modified_files }}; do
+          #delete then add
+          PAYLOAD={"customer-id":"${{ inputs.vectaraAccountNumber }}","corpus-id":"${{ inputs.vectaraCorpusID }}","document-id":"$file"}
+          echo "::debug::Payload: $PAYLOAD"
+          curl -XPOST "https://h.indexing.vectara.io/v1/delete" -d $PAYLOAD \
+           -H "Content-type: application/json" \
+           -H "Authorization: Bearer $JWT_TOKEN" \
+           -H "customer-id: ${{ inputs.vectaraAccountNumber }}"
+
+          FULL_FILE_PATH=$GITHUB_WORKSPACE/$file
+          echo "::debug::Full file path: $FULL_FILE_PATH"
+          echo "::debug::File stats: $(ls -al $FULL_FILE_PATH)"
+          curl -XPOST "https://h.indexing.vectara.io/upload?o=${{ inputs.vectaraCorpusID }}&c=${{ inputs.vectaraAccountNumber }}" \
+           -H "Authorization: Bearer $JWT_TOKEN" -F file=@$FULL_FILE_PATH
+        done
