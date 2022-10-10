@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Index changed-files
     steps:
-      - uses: vectara/vectara-index-git-docs@v0.1.0
+      - uses: vectara/vectara-index-git-docs@v0.1.1
         with:
           vectaraAccountNumber: ${{ secrets.VECTARA_ACCOUNT_NUMBER }}
           vectaraCorpusID: ${{ secrets.VECTARA_CORPUS_NUMBER }}
