@@ -6,6 +6,10 @@ Useful for auto-indexing documentation and other enterprise content contained in
 
 ## Usage
 
+To use this GitHub action, add a file at `.github/workflows/vectara.yml` with the following contents.
+
+Add secrets to the repository for the `secrets.` values in this template.
+
 ```yaml
 name: CI
 
