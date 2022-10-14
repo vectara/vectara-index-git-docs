@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Index changed-files
     steps:
-      - uses: vectara/vectara-index-git-docs@v0.1.2
+      - uses: vectara/vectara-index-git-docs@v0.1.4
         with:
           vectaraAccountNumber: ${{ secrets.VECTARA_ACCOUNT_NUMBER }}
           vectaraCorpusID: ${{ secrets.VECTARA_CORPUS_NUMBER }}
@@ -37,10 +37,13 @@ jobs:
 ```
 
 ## Configuration
-|      Parameter       |   Description                | Default
-|:--------------------:|:----------------------------:|:----------------------------:
-| vectaraAccountNumber | Vectara Account Number       | N/A
-|    vectaraCorpusID   | Vectara Account ID           | N/A
-|    vectaraClientID   | Vectara OAuth2 Client ID     | N/A
-|  vectaraClientSecret | Vectara OAuth2 Client Secret | N/A
-|     filesPattern     | What files to index          | **
+|      Parameter          |   Description                                | Default
+|:-----------------------:|:--------------------------------------------:|:----------------------------:
+|   vectaraAccountNumber  | Vectara Account Number                       | N/A
+|      vectaraCorpusID    | Vectara Account ID                           | N/A
+|      vectaraClientID    | Vectara OAuth2 Client ID                     | N/A
+|    vectaraClientSecret  | Vectara OAuth2 Client Secret                 | N/A
+|   incrementalIndexing   | Whether this is the first time indexing (set to "true") to you want an incremental | true
+|       filesPattern      | What files to index                          | Optional: ** (All files)
+|   vectaraAuthEndpoint   | Where to authenticate for an OAuth 2.0 token | Optional: Auto-set based on your Account number
+| vectaraIndexingEndpoint | indexing.vectara.io                          | Optional: not needed for most accounts
