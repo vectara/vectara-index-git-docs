@@ -52,7 +52,7 @@ runs:
         
     - name: Get changed files
       id: changed-files
-      uses: tj-actions/changed-files@v32
+      uses: eskibars/changed-files@v0.1.0
       if: inputs.incrementalIndexing == 'true'
       with:
           files: |
@@ -60,7 +60,7 @@ runs:
 
     - name: Get all files
       id: all-files
-      uses: tj-actions/changed-files@v32
+      uses: eskibars/changed-files@v0.1.0
       if: inputs.incrementalIndexing == 'false'
       with:
           base_sha: 4b825dc642cb6eb9a060e54bf8d69288fbee4904
