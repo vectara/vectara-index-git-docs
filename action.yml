@@ -71,7 +71,7 @@ runs:
       shell: bash
       id: delete-docs
       run: |
-        for file in ${{ steps.changed-files.outputs.deleted_files }}; do
+        for file in ${{ steps.changed-files.outputs.deleted_files }} ${{ steps.all-files.outputs.deleted_files }}; do
           PAYLOAD={"customer-id":"${{ inputs.vectaraAccountNumber }}","corpus-id":"${{ inputs.vectaraCorpusID }}","document-id":"$file"}
           echo "::debug::Payload: $PAYLOAD"
           curl -XPOST "https://h.indexing.vectara.io/v1/delete" -d $PAYLOAD \
@@ -84,7 +84,7 @@ runs:
       shell: bash
       id: index-docs
       run: |
-        for file in ${{ steps.changed-files.outputs.added_files }}; do
+        for file in ${{ steps.changed-files.outputs.added_files }} ${{ steps.all-files.outputs.deleted_files }}; do
           FULL_FILE_PATH=$GITHUB_WORKSPACE/$file
           echo "::debug::Full file path: $FULL_FILE_PATH"
           echo "::debug::File stats: $(ls -al $FULL_FILE_PATH)"
@@ -96,7 +96,7 @@ runs:
       shell: bash
       id: update-docs
       run: |
-        for file in ${{ steps.changed-files.outputs.modified_files }}; do
+        for file in ${{ steps.changed-files.outputs.modified_files }} ${{ steps.all-files.outputs.deleted_files }}; do
           #delete then add
           PAYLOAD={"customer-id":"${{ inputs.vectaraAccountNumber }}","corpus-id":"${{ inputs.vectaraCorpusID }}","document-id":"$file"}
           echo "::debug::Payload: $PAYLOAD"
