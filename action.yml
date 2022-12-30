@@ -18,7 +18,7 @@ inputs:
     required: true
   vectaraIndexingEndpoint:
     description: 'Vectara Indexing Endpoint'
-    default: 'indexing.vectara.io'
+    default: 'api.vectara.io'
     required: false
   vectaraAuthEndpoint:
     description: 'Vectara Authentication Endpoint'
@@ -74,7 +74,7 @@ runs:
         for file in ${{ steps.changed-files.outputs.deleted_files }} ${{ steps.all-files.outputs.deleted_files }}; do
           PAYLOAD={"customer-id":"${{ inputs.vectaraAccountNumber }}","corpus-id":"${{ inputs.vectaraCorpusID }}","document-id":"$file"}
           echo "::debug::Delete-Payload: $PAYLOAD"
-          curl -XPOST "https://api.vectara.io/v1/delete" -d $PAYLOAD \
+          curl -XPOST "https://${{ inputs.vectaraIndexingEndpoint }}/v1/delete" -d $PAYLOAD \
            -H "Content-type: application/json" \
            -H "Authorization: Bearer $JWT_TOKEN" \
            -H "customer-id: ${{ inputs.vectaraAccountNumber }}"
@@ -88,7 +88,7 @@ runs:
           FULL_FILE_PATH=$GITHUB_WORKSPACE/$file
           echo "::debug::Full file path: $FULL_FILE_PATH"
           echo "::debug::File stats: $(ls -al $FULL_FILE_PATH)"
-          curl -XPOST "https://api.vectara.io/upload?o=${{ inputs.vectaraCorpusID }}&c=${{ inputs.vectaraAccountNumber }}" \
+          curl -XPOST "https://${{ inputs.vectaraIndexingEndpoint }}/v1/upload?o=${{ inputs.vectaraCorpusID }}&c=${{ inputs.vectaraAccountNumber }}" \
            -H "Authorization: Bearer $JWT_TOKEN" -F file=@$FULL_FILE_PATH
         done
 
@@ -100,7 +100,7 @@ runs:
           #delete then add
           PAYLOAD={"customer-id":"${{ inputs.vectaraAccountNumber }}","corpus-id":"${{ inputs.vectaraCorpusID }}","document-id":"$file"}
           echo "::debug::Update-Payload: $PAYLOAD"
-          curl -XPOST "https://api.vectara.io/v1/delete" -d $PAYLOAD \
+          curl -XPOST "https://${{ inputs.vectaraIndexingEndpoint }}/v1/delete" -d $PAYLOAD \
            -H "Content-type: application/json" \
            -H "Authorization: Bearer $JWT_TOKEN" \
            -H "customer-id: ${{ inputs.vectaraAccountNumber }}"
@@ -108,6 +108,6 @@ runs:
           FULL_FILE_PATH=$GITHUB_WORKSPACE/$file
           echo "::debug::Full file path: $FULL_FILE_PATH"
           echo "::debug::File stats: $(ls -al $FULL_FILE_PATH)"
-          curl -XPOST "https://api.vectara.io/v1/upload?o=${{ inputs.vectaraCorpusID }}&c=${{ inputs.vectaraAccountNumber }}" \
+          curl -XPOST "https://${{ inputs.vectaraIndexingEndpoint }}/v1/upload?o=${{ inputs.vectaraCorpusID }}&c=${{ inputs.vectaraAccountNumber }}" \
            -H "Authorization: Bearer $JWT_TOKEN" -F file=@$FULL_FILE_PATH
         done
