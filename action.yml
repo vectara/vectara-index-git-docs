@@ -74,7 +74,7 @@ runs:
         for file in ${{ steps.changed-files.outputs.deleted_files }} ${{ steps.all-files.outputs.deleted_files }}; do
           PAYLOAD={"customer-id":"${{ inputs.vectaraAccountNumber }}","corpus-id":"${{ inputs.vectaraCorpusID }}","document-id":"$file"}
           echo "::debug::Delete-Payload: $PAYLOAD"
-          curl -XPOST "https://${{ inputs.vectaraIndexingEndpoint }}/v1/delete" -d $PAYLOAD \
+          curl -XPOST "https://${{ inputs.vectaraIndexingEndpoint }}/v1/delete-doc" -d $PAYLOAD \
            -H "Content-type: application/json" \
            -H "Authorization: Bearer $JWT_TOKEN" \
            -H "customer-id: ${{ inputs.vectaraAccountNumber }}"
@@ -100,7 +100,7 @@ runs:
           #delete then add
           PAYLOAD={"customer-id":"${{ inputs.vectaraAccountNumber }}","corpus-id":"${{ inputs.vectaraCorpusID }}","document-id":"$file"}
           echo "::debug::Update-Payload: $PAYLOAD"
-          curl -XPOST "https://${{ inputs.vectaraIndexingEndpoint }}/v1/delete" -d $PAYLOAD \
+          curl -XPOST "https://${{ inputs.vectaraIndexingEndpoint }}/v1/delete-doc" -d $PAYLOAD \
            -H "Content-type: application/json" \
            -H "Authorization: Bearer $JWT_TOKEN" \
            -H "customer-id: ${{ inputs.vectaraAccountNumber }}"
